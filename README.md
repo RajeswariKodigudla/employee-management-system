@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Employee Management System
 A Django portfolio application with employee CRUD, department management, authentication, dashboard metrics, search and filters, CSV export, attendance records, leave request review and responsive UI.
 
@@ -118,3 +119,7 @@ python manage.py test core.test_audit_logs
 
 ## Notes
 Local portfolio project only. Before production deployment, configure environment-based secrets, DEBUG=False, HTTPS, email password reset, backups, logging, privacy rules and a production database. Delete All is destructive; test only with sample records. Biometric attendance and automated email notifications are not implemented.
+=======
+# employee-management-system
+Django Employee Management System with payroll, attendance, leave management and audit logs
+>>>>>>> da8acb3e20370d78158f400a88457ae40b210687
