@@ -1,0 +1,25 @@
+.performance-stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+.performance-summary{padding:20px 22px}
+.rating-summary-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.rating-summary-item{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:9px;color:var(--muted);font-size:11px}
+.rating-summary-item strong{color:var(--ink);font-size:13px}
+.rating-stars,.performance-rating{display:inline-flex;align-items:center;white-space:nowrap;border-radius:7px;background:var(--soft);color:var(--purple);padding:6px 9px;font-size:10px;font-weight:800}
+.performance-filters .form-control{min-width:160px;max-width:220px}
+.performance-filters .form-select{min-width:145px}
+.performance-employee{font-weight:700;color:var(--ink)}
+.performance-employee:hover{color:var(--purple)}
+.performance-employee small,.performance-rating-label{display:block;color:var(--muted);font-size:10px;margin-top:4px}
+.performance-head-actions,.performance-header-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.performance-review-card{padding:23px}
+.performance-review-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:17px;border-bottom:1px solid var(--line)}
+.performance-review-header h2{font:700 17px Manrope,sans-serif;margin:7px 0}
+.performance-review-header p{margin:0;color:var(--muted);font-size:11px}
+.performance-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 25px}
+.performance-detail-grid section{padding:17px 0;border-bottom:1px solid #f0f0f5}
+.performance-detail-grid section.wide{grid-column:1/-1}
+.performance-detail-grid h3{font:700 12px Manrope,sans-serif;color:var(--purple);margin:0 0 8px}
+.performance-detail-grid p{color:#686d83;font-size:12px;line-height:1.7;margin:0}
+.performance-form-panel .field.wide{grid-column:1/-1}
+.performance-reviewer-note{padding:12px 14px;margin:20px 0 0;border-radius:8px;background:var(--soft);color:#6155be;font-size:11px}
+@media(max-width:900px){.performance-filters .form-control,.performance-filters .form-select{max-width:none;flex:1 1 40%}}
+@media(max-width:650px){.performance-stats{grid-template-columns:1fr 1fr}.performance-filters .form-control,.performance-filters .form-select{flex:1 1 100%}.performance-review-header{flex-direction:column}.performance-detail-grid{grid-template-columns:1fr}.performance-detail-grid section.wide{grid-column:auto}.performance-head-actions{width:100%}}

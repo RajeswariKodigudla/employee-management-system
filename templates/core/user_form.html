@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} · User &amp; Role Management{% endblock %}
+{% block crumb %}{{ title }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><small class="eyebrow">ACCESS CONTROL</small><h1>{{ title }}</h1><p>Account passwords are securely hashed and never shown after creation.</p></div>
+</div>
+<section class="panel form-panel">
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="form-grid">
+      {% for field in form %}
+        <div class="field {% if field.name == 'password1' or field.name == 'password2' %}wide{% endif %}">
+          <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+          {{ field }}
+          {% if field.help_text %}<div class="user-form-help">{{ field.help_text|safe }}</div>{% endif %}
+          {% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+    {% if target_user %}
+      <p class="user-form-note"><i class="bi bi-shield-lock"></i> This form cannot set superuser privileges. Existing passwords are not viewable or editable here.</p>
+    {% endif %}
+    <div class="form-actions">
+      <a class="btn btn-light" href="{% url 'user_list' %}">Cancel</a>
+      <button class="btn btn-primary"><i class="bi bi-check2"></i> Save user</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

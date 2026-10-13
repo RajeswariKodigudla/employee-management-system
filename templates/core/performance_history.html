@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}{{ employee.full_name }} Performance History · Employee Management System{% endblock %}
+{% block crumb %}Performance History{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><small class="eyebrow">EMPLOYEE PERFORMANCE</small><h1>{{ employee.full_name }}</h1><p>{{ employee.employee_id }} · {{ employee.department.name }} · {{ employee.designation }}</p></div>
+  <div class="performance-head-actions"><a class="btn btn-light" href="{% url 'performance_list' %}"><i class="bi bi-arrow-left"></i> All reviews</a>{% if perms.core.add_performancereview %}<a class="btn btn-primary" href="{% url 'performance_create' %}"><i class="bi bi-plus-lg"></i> Create review</a>{% endif %}</div>
+</div>
+<section class="stats performance-stats">
+  <div class="stat"><div class="stat-label">Reviews<span class="ico purple"><i class="bi bi-clipboard2-check"></i></span></div><strong>{{ summary.review_count|default:0 }}</strong><small>Performance reviews on file</small></div>
+  <div class="stat"><div class="stat-label">Average rating<span class="ico blue"><i class="bi bi-star"></i></span></div><strong>{% if summary.average_rating %}{{ summary.average_rating|floatformat:1 }} / 5{% else %}—{% endif %}</strong><small>Across this employee's reviews</small></div>
+</section>
+{% for review in reviews %}
+  <article class="panel performance-review-card">
+    <header class="performance-review-header">
+      <div><small class="eyebrow">REVIEW PERIOD</small><h2>{{ review.review_period_start|date:"d M Y" }} – {{ review.review_period_end|date:"d M Y" }}</h2><p>Reviewer: {{ review.reviewer.get_full_name|default:review.reviewer.username }} · Created {{ review.created_at|date:"d M Y" }}</p></div>
+      <div class="performance-header-actions"><span class="performance-rating">{{ review.rating }} / 5 · {{ review.get_rating_display }}</span>{% if perms.core.change_performancereview %}<a class="btn btn-light btn-sm" href="{% url 'performance_update' review.pk %}"><i class="bi bi-pencil"></i> Edit</a>{% endif %}{% if perms.core.delete_performancereview %}<form method="post" action="{% url 'performance_delete' review.pk %}" class="audit-inline-delete" onsubmit="return confirm('Delete this performance review?')">{% csrf_token %}<button class="btn btn-light btn-sm" type="submit"><i class="bi bi-trash"></i> Delete</button></form>{% endif %}</div>
+    </header>
+    <div class="performance-detail-grid">
+      <section><h3>Goals</h3><p>{{ review.goals|linebreaksbr }}</p></section>
+      <section><h3>Achievements</h3><p>{{ review.achievements|linebreaksbr }}</p></section>
+      <section><h3>Strengths</h3><p>{{ review.strengths|linebreaksbr }}</p></section>
+      <section><h3>Areas for improvement</h3><p>{{ review.improvement_areas|linebreaksbr }}</p></section>
+      <section class="wide"><h3>Feedback</h3><p>{{ review.feedback|linebreaksbr }}</p></section>
+    </div>
+  </article>
+{% empty %}
+  <section class="panel"><div class="empty"><i class="bi bi-clipboard2"></i><b>No performance reviews yet</b><span>{% if perms.core.add_performancereview %}Create a review to begin this employee's performance history.{% else %}There are no reviews to display.{% endif %}</span></div></section>
+{% endfor %}
+{% endblock %}

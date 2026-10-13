@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}User &amp; Role Management · Employee Management System{% endblock %}
+{% block crumb %}User &amp; Role Management{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <small class="eyebrow">ACCESS CONTROL</small>
+    <h1>User &amp; Role Management</h1>
+    <p>Manage registered accounts, application roles, and account access.</p>
+  </div>
+  <a class="btn btn-primary" href="{% url 'user_create' %}"><i class="bi bi-person-plus"></i> Create user</a>
+</div>
+<section class="panel table-panel">
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for account in users %}
+          <tr>
+            <td><div class="emp-cell"><span class="avatar">{{ account.username|first|upper }}</span><span><b>{{ account.username }}</b><small>{{ account.get_full_name|default:"—" }}</small></span></div></td>
+            <td>{{ account.email|default:"—" }}</td>
+            <td><span class="badge-status {% if account.display_role == 'admin' %}status-approved{% elif account.display_role == 'hr' %}status-pending{% else %}status-inactive{% endif %}">{{ account.display_role|title }}</span></td>
+            <td><span class="badge-status {% if account.is_active %}status-active{% else %}status-inactive{% endif %}">{% if account.is_active %}Active{% else %}Inactive{% endif %}</span></td>
+            <td class="actions"><a href="{% url 'user_update' account.pk %}" title="Edit {{ account.username }}"><i class="bi bi-pencil"></i></a></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5"><div class="empty"><i class="bi bi-people"></i><b>No registered users</b><span>Create an account to get started.</span></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if users.paginator.num_pages > 1 %}
+    <div class="table-bottom user-pagination">
+      <span>Page {{ users.number }} of {{ users.paginator.num_pages }} · {{ users.paginator.count }} accounts</span>
+      <nav aria-label="User list pages">
+        {% if users.has_previous %}<a class="btn btn-light btn-sm" href="?page={{ users.previous_page_number }}">Previous</a>{% endif %}
+        {% if users.has_next %}<a class="btn btn-light btn-sm" href="?page={{ users.next_page_number }}">Next</a>{% endif %}
+      </nav>
+    </div>
+  {% else %}
+    <div class="table-bottom"><span>{{ users.paginator.count }} account{{ users.paginator.count|pluralize }}</span></div>
+  {% endif %}
+</section>
+{% endblock %}

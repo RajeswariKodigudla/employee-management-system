@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Departments · Employee Management System{% endblock %}
+{% block crumb %}Departments{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><small class="eyebrow">ORGANIZATION</small><h1>Departments</h1><p>Organize employees by business function.</p></div>
+  {% if perms.core.add_department %}<a class="btn btn-primary" href="{% url 'department_create' %}"><i class="bi bi-plus-lg"></i> Add department</a>{% endif %}
+</div>
+<section class="panel table-panel">
+  <form class="filters" method="get">
+    <div class="search"><i class="bi bi-search"></i><input name="q" value="{{ q }}" placeholder="Search departments..."></div>
+    <button class="btn btn-outline-secondary">Search</button>
+    <a class="btn btn-light" href="{% url 'department_list' %}">Reset</a>
+  </form>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead><tr><th>Department</th><th>Description</th><th>Employees</th><th>Created</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for d in departments %}
+          <tr>
+            <td><b>{{ d.name }}</b></td><td>{{ d.description|default:'—'|truncatechars:70 }}</td>
+            <td><span class="count">{{ d.n }}</span></td><td>{{ d.created_at|date:'d M Y' }}</td>
+            <td class="actions">
+              {% if perms.core.change_department %}<a href="{% url 'department_update' d.pk %}" title="Edit"><i class="bi bi-pencil"></i></a>{% endif %}
+              {% if perms.core.delete_department %}<form method="post" action="{% url 'department_delete' d.pk %}" onsubmit="return confirm('Delete this department? It must have no employees.')">{% csrf_token %}<button title="Delete"><i class="bi bi-trash"></i></button></form>{% endif %}
+            </td>
+          </tr>
+        {% empty %}<tr><td colspan="5"><div class="empty"><i class="bi bi-building"></i><b>No departments yet</b></div></td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

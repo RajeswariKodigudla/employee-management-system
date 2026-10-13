@@ -1,0 +1,41 @@
+.holiday-filters{padding:18px 20px}
+.holiday-filter-form{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.holiday-search-field{flex:1 1 240px}
+.holiday-date-filter{flex:0 1 150px}
+.holiday-layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,.8fr);gap:18px;align-items:start}
+.holiday-calendar-panel{padding:20px;min-width:0}
+.holiday-calendar-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+.holiday-calendar-heading h2{font:800 17px Manrope,sans-serif;margin:0 0 5px}
+.holiday-calendar-heading p{font-size:11px;color:var(--muted);margin:0}
+.holiday-calendar-nav{display:flex;gap:6px}
+.holiday-calendar-nav .btn{padding:7px 11px}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-top:1px solid var(--line);border-left:1px solid var(--line)}
+.calendar-weekday{padding:9px 4px;text-align:center;background:#fafaff;border-right:1px solid var(--line);border-bottom:1px solid var(--line);color:var(--muted);font-size:10px;font-weight:700}
+.calendar-day{min-height:102px;padding:7px 6px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:#fff;min-width:0}
+.calendar-day-empty{background:#fafafd}
+.calendar-day-today{background:#f4f2ff;box-shadow:inset 0 0 0 1px #b7aff8}
+.calendar-day-number{display:block;font-size:11px;font-weight:700;color:#656a81;margin-bottom:5px}
+.calendar-day-today .calendar-day-number{color:var(--purple)}
+.calendar-holiday{display:flex;align-items:center;gap:4px;padding:4px 5px;margin:3px 0;border-radius:5px;background:var(--soft);color:#5d50c7;font-size:10px}
+.calendar-holiday-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.calendar-holiday a{color:inherit;flex-shrink:0}
+.holiday-calendar-empty{margin:14px 0 0;text-align:center;color:var(--muted);font-size:11px}
+.upcoming-panel{min-width:0}
+.upcoming-list{display:grid;gap:0}
+.upcoming-holiday{display:flex;align-items:flex-start;gap:11px;padding:14px 0;border-bottom:1px solid #f0f0f5}
+.upcoming-holiday:last-child{border-bottom:0}
+.upcoming-date{width:42px;height:47px;border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;background:var(--soft);color:var(--purple)}
+.upcoming-date strong{font:800 17px Manrope,sans-serif;line-height:1}
+.upcoming-date span{font-size:9px;font-weight:700;text-transform:uppercase;margin-top:4px}
+.upcoming-details{min-width:0;flex:1}
+.upcoming-details b{display:block;font-size:12px}
+.upcoming-details small{display:block;margin-top:4px;color:var(--muted);font-size:10px}
+.upcoming-details p{margin:6px 0 0;color:#777b92;font-size:10px}
+.upcoming-edit,.upcoming-delete{color:#888ca1;background:none;border:0;padding:3px;font-size:12px}
+.upcoming-holiday form{margin:0}
+.upcoming-edit:hover,.upcoming-delete:hover{color:var(--purple)}
+.holiday-list-panel{margin-top:18px}
+.holiday-list-panel form{margin:0}
+@media(max-width:1100px){.holiday-layout{grid-template-columns:1fr}.upcoming-panel{order:2}}
+@media(max-width:700px){.calendar-day{min-height:76px;padding:5px 3px}.calendar-weekday{font-size:9px;padding:7px 2px}.calendar-holiday{font-size:9px;padding:3px}.holiday-date-filter{flex:1 1 130px}.holiday-filter-form>.btn{flex:1}}
+@media(max-width:420px){.calendar-day{min-height:58px}.calendar-holiday{display:none}.calendar-day-number{font-size:10px}.holiday-calendar-panel{padding:12px}}

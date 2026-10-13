@@ -1,0 +1,7 @@
+.user-pagination{gap:12px;flex-wrap:wrap}
+.user-pagination nav{display:flex;gap:6px}
+.user-form-help{font-size:11px;color:var(--muted);margin-top:7px}
+.user-form-help ul{margin:6px 0 0;padding-left:18px}
+.user-form-help li{margin-top:3px}
+.user-form-note{margin:18px 0 0;padding:12px;border-radius:8px;background:var(--soft);color:#6155bd;font-size:11px}
+@media(max-width:600px){.user-pagination{align-items:flex-start}.user-pagination nav{width:100%}}

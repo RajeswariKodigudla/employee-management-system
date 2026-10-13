@@ -1,0 +1,11 @@
+.payroll-filters .form-control{min-width:170px;max-width:220px}
+.payroll-filters .form-select{min-width:130px}
+.payroll-employee{font-weight:700;color:var(--ink)}
+.payroll-employee:hover{color:var(--purple)}
+.payroll-employee small,.payroll-date{display:block;color:var(--muted);font-size:10px;margin-top:4px}
+.payroll-help{display:block;color:var(--muted);font-size:10px;margin-top:5px}
+.payroll-calculation{padding:12px 14px;margin:20px 0 0;border-radius:8px;background:var(--soft);color:#6155be;font-size:11px}
+.payroll-head-actions{display:flex;gap:8px;flex-wrap:wrap}
+.actions .payslip-download{display:inline-flex;align-items:center;justify-content:center;gap:5px;width:auto;height:30px;padding:0 9px;color:var(--purple);font-weight:700}
+@media(max-width:1100px){.payroll-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.payroll-filters .form-control,.payroll-filters .form-select{max-width:none;flex:1 1 100%}.payroll-head-actions{width:100%}.page-head:has(.payroll-head-actions){align-items:flex-start;flex-direction:column}}

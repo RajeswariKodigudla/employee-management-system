@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} · Employee Management System{% endblock %}
+{% block crumb %}{{ title }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><small class="eyebrow">PEOPLE DEVELOPMENT</small><h1>{{ title }}</h1><p>Record a confidential employee performance review.</p></div></div>
+<section class="panel form-panel performance-form-panel">
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="form-grid">
+      {% for field in form %}
+        <div class="field {% if field.name == 'goals' or field.name == 'achievements' or field.name == 'strengths' or field.name == 'improvement_areas' or field.name == 'feedback' %}wide{% endif %}">
+          <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+          {{ field }}
+          {% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+    <p class="performance-reviewer-note"><i class="bi bi-shield-lock"></i> Reviewer attribution is recorded from your signed-in account.</p>
+    <div class="form-actions"><a class="btn btn-light" href="{% if review %}{% url 'performance_history' review.employee_id %}{% else %}{% url 'performance_list' %}{% endif %}">Cancel</a><button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i> Save review</button></div>
+  </form>
+</section>
+{% endblock %}

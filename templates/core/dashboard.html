@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard · Employee Management System{% endblock %}
+{% block crumb %}Dashboard{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><small class="eyebrow">OVERVIEW</small><h1>Dashboard</h1><p>Welcome back, {{ user.get_full_name|default:user.username }}. Here's your workforce overview.</p></div>
+  {% if perms.core.add_employee %}<a class="btn btn-primary" href="{% url 'employee_create' %}"><i class="bi bi-plus-lg"></i> Add employee</a>{% endif %}
+</div>
+<div class="stats">
+  <div class="stat"><div class="stat-label">Total employees <span class="ico purple"><i class="bi bi-people"></i></span></div><strong>{{ total }}</strong><small>All employee records</small></div>
+  <div class="stat"><div class="stat-label">Active employees <span class="ico green"><i class="bi bi-person-check"></i></span></div><strong>{{ active }}</strong><small>Currently active</small></div>
+  <div class="stat"><div class="stat-label">Departments <span class="ico blue"><i class="bi bi-building"></i></span></div><strong>{{ departments }}</strong><small>Organization units</small></div>
+  <div class="stat"><div class="stat-label">Pending leave <span class="ico orange"><i class="bi bi-calendar2-week"></i></span></div><strong>{{ pending }}</strong><small>Awaiting review</small></div>
+</div>
+<div class="dash-grid">
+  <section class="panel">
+    <div class="panel-head"><div><h2>Department overview</h2><p>Employee distribution</p></div><a href="{% url 'department_list' %}">View all <i class="bi bi-arrow-up-right"></i></a></div>
+    {% for d in dept_stats %}
+      <div class="bar-label"><span>{{ d.name }}</span><b>{{ d.n }}</b></div><div class="bar"><span style="width:{% widthratio d.n total 100 %}%"></span></div>
+    {% empty %}
+      <div class="empty"><i class="bi bi-bar-chart"></i><b>No department data yet</b><span>Create a department and add employees to see analytics.</span></div>
+    {% endfor %}
+  </section>
+  <section class="panel">
+    <div class="panel-head"><div><h2>Quick actions</h2><p>Common tasks</p></div></div>
+    {% if perms.core.add_employee %}<a class="quick" href="{% url 'employee_create' %}"><span class="ico purple"><i class="bi bi-person-plus"></i></span><span><b>Add employee</b><small>Create a new record</small></span><i class="bi bi-arrow-right"></i></a>{% endif %}
+    <a class="quick" href="{% url 'department_list' %}"><span class="ico blue"><i class="bi bi-building-add"></i></span><span><b>Departments</b><small>Manage organization units</small></span><i class="bi bi-arrow-right"></i></a>
+    {% if perms.core.add_attendance %}<a class="quick" href="{% url 'attendance_create' %}"><span class="ico green"><i class="bi bi-calendar-check"></i></span><span><b>Record attendance</b><small>Add a daily record</small></span><i class="bi bi-arrow-right"></i></a>{% endif %}
+    {% if perms.auth.view_user %}<a class="quick" href="{% url 'user_list' %}"><span class="ico purple"><i class="bi bi-person-gear"></i></span><span><b>User management</b><small>Manage accounts and roles</small></span><i class="bi bi-arrow-right"></i></a>{% endif %}
+  </section>
+</div>
+<section class="panel table-panel">
+  <div class="panel-head"><div><h2>Recently added employees</h2><p>Latest records in your workspace</p></div><a href="{% url 'employee_list' %}">View employees <i class="bi bi-arrow-right"></i></a></div>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead><tr><th>Employee</th><th>Department</th><th>Designation</th><th>Joining date</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for e in recent %}
+          <tr><td><a class="emp-cell" href="{% url 'employee_detail' e.pk %}"><span class="avatar">{{ e.full_name|first|upper }}</span><span><b>{{ e.full_name }}</b><small>{{ e.employee_id }} · {{ e.email }}</small></span></a></td><td>{{ e.department.name }}</td><td>{{ e.designation }}</td><td>{{ e.joining_date|date:'d M Y' }}</td><td><span class="badge-status status-{{ e.status|lower }}">{{ e.get_status_display }}</span></td></tr>
+        {% empty %}
+          <tr><td colspan="5"><div class="empty"><i class="bi bi-people"></i><b>No employees yet</b>{% if perms.core.add_employee %}<a href="{% url 'employee_create' %}">Add the first employee</a>{% endif %}</div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

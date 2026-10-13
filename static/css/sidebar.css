@@ -1,0 +1,12 @@
+.sidebar {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+
+.sidebar > .brand,
+.sidebar > .nav-caption,
+.sidebar > .nav-linkx,
+.sidebar > .sidebar-bottom {
+  flex-shrink: 0;
+}

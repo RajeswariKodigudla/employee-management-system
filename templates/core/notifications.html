@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Notifications · Employee Management System{% endblock %}
+{% block crumb %}Notifications{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <small class="eyebrow">UPDATES</small>
+    <h1>Notifications</h1>
+    <p>Pending leave requests and upcoming company holidays.</p>
+  </div>
+  {% if unread_count %}
+    <form method="post" action="{% url 'notification_mark_all_read' %}">
+      {% csrf_token %}
+      <button class="btn btn-primary"><i class="bi bi-check2-all"></i> Mark all as read</button>
+    </form>
+  {% endif %}
+</div>
+<section class="panel notification-panel">
+  <div class="notification-filters" aria-label="Filter notifications">
+    <a class="{% if status == 'all' %}active{% endif %}" href="{% url 'notification_list' %}?status=all">All</a>
+    <a class="{% if status == 'unread' %}active{% endif %}" href="{% url 'notification_list' %}?status=unread">Unread{% if unread_count %}<span>{{ unread_count }}</span>{% endif %}</a>
+    <a class="{% if status == 'read' %}active{% endif %}" href="{% url 'notification_list' %}?status=read">Read</a>
+  </div>
+  <div class="notification-list">
+    {% for notification in notifications %}
+      <article class="notification-item {% if not notification.is_read %}notification-unread{% endif %}">
+        <span class="notification-icon {% if notification.kind == 'LEAVE' %}notification-leave-icon{% else %}notification-holiday-icon{% endif %}">
+          <i class="bi {% if notification.kind == 'LEAVE' %}bi-calendar2-week{% else %}bi-calendar-event{% endif %}"></i>
+        </span>
+        <div class="notification-content">
+          <div class="notification-title-row">
+            <h2>{{ notification.title }}</h2>
+            {% if notification.is_read %}<span class="notification-state notification-read">Read</span>{% else %}<span class="notification-state notification-unread-state">Unread</span>{% endif %}
+          </div>
+          <p>{{ notification.message }}</p>
+          <time datetime="{{ notification.created_at|date:'c' }}">{{ notification.created_at|date:"d M Y, H:i" }}</time>
+        </div>
+        {% if not notification.is_read %}
+          <form method="post" action="{% url 'notification_mark_read' notification.pk %}">
+            {% csrf_token %}
+            <button class="btn btn-light btn-sm notification-mark-read">Mark read</button>
+          </form>
+        {% endif %}
+      </article>
+    {% empty %}
+      <div class="empty notification-empty">
+        <i class="bi bi-bell-slash"></i>
+        <b>No {% if status == 'unread' %}unread {% elif status == 'read' %}read {% endif %}notifications</b>
+        <span>Updates about pending leave and upcoming holidays will appear here.</span>
+      </div>
+    {% endfor %}
+  </div>
+  {% if notifications.paginator.num_pages > 1 %}
+    <div class="table-bottom notification-pagination">
+      <span>Page {{ notifications.number }} of {{ notifications.paginator.num_pages }}</span>
+      <nav aria-label="Notification pages">
+        {% if notifications.has_previous %}<a class="btn btn-light btn-sm" href="?status={{ status }}&amp;page={{ notifications.previous_page_number }}">Previous</a>{% endif %}
+        {% if notifications.has_next %}<a class="btn btn-light btn-sm" href="?status={{ status }}&amp;page={{ notifications.next_page_number }}">Next</a>{% endif %}
+      </nav>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

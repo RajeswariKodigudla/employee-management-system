@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Holidays &amp; Calendar · Employee Management System{% endblock %}
+{% block crumb %}Holidays &amp; Calendar{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><small class="eyebrow">COMPANY DATES</small><h1>Holidays &amp; Calendar</h1><p>Browse company holidays and upcoming dates.</p></div>
+  {% if perms.core.add_holiday %}<a class="btn btn-primary" href="{% url 'holiday_create' %}"><i class="bi bi-plus-lg"></i> Add holiday</a>{% endif %}
+</div>
+
+<section class="panel holiday-filters">
+  <form method="get" class="holiday-filter-form">
+    <div class="holiday-search-field">
+      <label class="form-label" for="{{ form.q.id_for_label }}">Search</label>{{ form.q }}
+    </div>
+    <div class="holiday-date-filter">
+      <label class="form-label" for="{{ form.year.id_for_label }}">Year</label>{{ form.year }}
+      {% for error in form.year.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+    </div>
+    <div class="holiday-date-filter">
+      <label class="form-label" for="{{ form.month.id_for_label }}">Month</label>{{ form.month }}
+      {% for error in form.month.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+    </div>
+    <button class="btn btn-primary" type="submit"><i class="bi bi-funnel"></i> Apply filters</button>
+    <a class="btn btn-light" href="{% url 'holiday_calendar' %}">Reset</a>
+  </form>
+  {% for error in form.non_field_errors %}<div class="alert alert-danger mt-3 mb-0">{{ error }}</div>{% endfor %}
+</section>
+
+<div class="holiday-layout">
+  <section class="panel holiday-calendar-panel">
+    <div class="holiday-calendar-heading">
+      <div>
+        <h2>{{ month_name }} {{ calendar_year }}</h2>
+        <p>{{ holiday_count }} holiday{{ holiday_count|pluralize }} in this month</p>
+      </div>
+      <div class="holiday-calendar-nav">
+        <a class="btn btn-light" href="?year={{ previous_month.year }}&amp;month={{ previous_month.month }}{% if query %}&amp;q={{ query|urlencode }}{% endif %}" aria-label="Previous month"><i class="bi bi-chevron-left"></i></a>
+        <a class="btn btn-light" href="?year={{ next_month.year }}&amp;month={{ next_month.month }}{% if query %}&amp;q={{ query|urlencode }}{% endif %}" aria-label="Next month"><i class="bi bi-chevron-right"></i></a>
+      </div>
+    </div>
+    <div class="calendar-grid" role="grid" aria-label="{{ month_name }} {{ calendar_year }}">
+      <div class="calendar-weekday">Mon</div><div class="calendar-weekday">Tue</div><div class="calendar-weekday">Wed</div><div class="calendar-weekday">Thu</div><div class="calendar-weekday">Fri</div><div class="calendar-weekday">Sat</div><div class="calendar-weekday">Sun</div>
+      {% for week in weeks %}
+        {% for cell in week %}
+          <div class="calendar-day {% if not cell.day %}calendar-day-empty{% endif %} {% if cell.date == calendar_today %}calendar-day-today{% endif %}">
+            {% if cell.day %}
+              <span class="calendar-day-number">{{ cell.day }}</span>
+              {% for holiday in cell.holidays %}
+                <div class="calendar-holiday">
+                  <span class="calendar-holiday-name" title="{{ holiday.name }}">{{ holiday.name }}</span>
+                  {% if perms.core.change_holiday %}<a href="{% url 'holiday_update' holiday.pk %}" aria-label="Edit {{ holiday.name }}"><i class="bi bi-pencil"></i></a>{% endif %}
+                </div>
+              {% endfor %}
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% endfor %}
+    </div>
+    {% if not holiday_count and query %}<p class="holiday-calendar-empty">No holidays match this search for {{ month_name }} {{ calendar_year }}.</p>{% endif %}
+  </section>
+
+  <section class="panel upcoming-panel">
+    <div class="panel-head">
+      <div><h2>Upcoming holidays</h2><p>Next holidays from today</p></div>
+      {% if perms.core.add_holiday %}<a href="{% url 'holiday_create' %}" title="Add holiday"><i class="bi bi-plus-lg"></i> Add</a>{% endif %}
+    </div>
+    <div class="upcoming-list">
+      {% for holiday in upcoming_holidays %}
+        <article class="upcoming-holiday">
+          <div class="upcoming-date"><strong>{{ holiday.date|date:"d" }}</strong><span>{{ holiday.date|date:"M" }}</span></div>
+          <div class="upcoming-details">
+            <b>{{ holiday.name }}</b>
+            <small>{{ holiday.date|date:"l, d F Y" }}{% if holiday.holiday_type %} · {{ holiday.get_holiday_type_display }}{% endif %}</small>
+            <p>{{ holiday.description|truncatechars:100 }}</p>
+          </div>
+          {% if perms.core.change_holiday %}<a class="upcoming-edit" href="{% url 'holiday_update' holiday.pk %}" aria-label="Edit {{ holiday.name }}"><i class="bi bi-pencil"></i></a>{% endif %}
+          {% if perms.core.delete_holiday %}<form method="post" action="{% url 'holiday_delete' holiday.pk %}" onsubmit="return confirm('Delete {{ holiday.name|escapejs }}?')">{% csrf_token %}<button class="upcoming-delete" aria-label="Delete {{ holiday.name }}"><i class="bi bi-trash"></i></button></form>{% endif %}
+        </article>
+      {% empty %}
+        <div class="empty"><i class="bi bi-calendar-x"></i><b>No upcoming holidays</b><span>{% if query %}No future holiday matches your search.{% else %}Add holidays to see them listed here.{% endif %}</span></div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+
+<section class="panel table-panel holiday-list-panel">
+  <div class="panel-head"><div><h2>Holidays for {{ month_name }} {{ calendar_year }}</h2><p>Matching holiday entries for the selected month</p></div></div>
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>Date</th><th>Holiday</th><th>Type</th><th>Description</th>{% if perms.core.delete_holiday %}<th>Actions</th>{% endif %}</tr></thead>
+      <tbody>
+        {% for holiday in calendar_holidays %}
+          <tr>
+            <td>{{ holiday.date|date:"D, d M Y" }}</td><td><strong>{{ holiday.name }}</strong></td>
+            <td>{{ holiday.get_holiday_type_display|default:"—" }}</td><td>{{ holiday.description|truncatechars:100 }}</td>
+            {% if perms.core.delete_holiday %}<td><form method="post" action="{% url 'holiday_delete' holiday.pk %}" onsubmit="return confirm('Delete {{ holiday.name|escapejs }}?')">{% csrf_token %}<button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i> Delete</button></form></td>{% endif %}
+          </tr>
+        {% empty %}
+          <tr><td colspan="{% if perms.core.delete_holiday %}5{% else %}4{% endif %}"><div class="empty"><i class="bi bi-calendar3"></i><b>No holidays this month</b><span>{% if perms.core.add_holiday %}Add a holiday or select another month.{% else %}Select another month to browse holidays.{% endif %}</span></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

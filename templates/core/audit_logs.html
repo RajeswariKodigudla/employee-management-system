@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}Audit Logs · Employee Management System{% endblock %}
+{% block crumb %}Audit Logs{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><small class="eyebrow">SECURITY &amp; COMPLIANCE</small><h1>Audit Logs</h1><p>Read-only history of successful administrative changes.</p></div>
+</div>
+<section class="panel audit-filters">
+  <form method="get" class="audit-filter-form">
+    <div class="audit-filter-field audit-search-field"><label class="form-label" for="{{ form.q.id_for_label }}">Search</label>{{ form.q }}</div>
+    <div class="audit-filter-field"><label class="form-label" for="{{ form.user.id_for_label }}">Acting user</label>{{ form.user }}</div>
+    <div class="audit-filter-field"><label class="form-label" for="{{ form.action.id_for_label }}">Action</label>{{ form.action }}</div>
+    <div class="audit-filter-field"><label class="form-label" for="{{ form.start_date.id_for_label }}">From</label>{{ form.start_date }}</div>
+    <div class="audit-filter-field"><label class="form-label" for="{{ form.end_date.id_for_label }}">To</label>{{ form.end_date }}</div>
+    <button class="btn btn-primary" type="submit"><i class="bi bi-funnel"></i> Apply filters</button>
+    <a class="btn btn-light" href="{% url 'audit_log_list' %}">Clear</a>
+  </form>
+  {% for error in form.non_field_errors %}<div class="alert alert-danger mt-3 mb-0">{{ error }}</div>{% endfor %}
+  {% for field in form %}{% for error in field.errors %}<div class="field-error mt-2">{{ field.label }}: {{ error }}</div>{% endfor %}{% endfor %}
+</section>
+<section class="panel table-panel audit-table-panel">
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead><tr><th>Timestamp</th><th>User</th><th>Action</th><th>Affected record</th><th>Description</th><th>Safe changes</th></tr></thead>
+      <tbody>
+        {% for entry in logs %}
+          <tr>
+            <td>{{ entry.timestamp|date:"d M Y, H:i:s" }}</td>
+            <td>{{ entry.acting_username }}</td>
+            <td><span class="audit-action audit-{{ entry.action|lower }}">{{ entry.get_action_display }}</span></td>
+            <td><strong>{{ entry.object_type }}</strong><small class="audit-record-id">{{ entry.affected_record }} · #{{ entry.object_id }}</small></td>
+            <td>{{ entry.description }}</td>
+            <td>
+              {% for field, values in entry.changes.items %}
+                <div class="audit-change"><b>{{ field|title }}</b>: {{ values.before|default:"—" }} <i class="bi bi-arrow-right"></i> {{ values.after|default:"—" }}</div>
+              {% empty %}<span class="text-muted">—</span>{% endfor %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6"><div class="empty"><i class="bi bi-shield-check"></i><b>No audit events found</b><span>Successful tracked changes will appear here.</span></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="table-bottom">
+    <span>{{ logs.paginator.count }} event{{ logs.paginator.count|pluralize }}</span>
+    {% if logs.paginator.num_pages > 1 %}
+      <nav aria-label="Audit log pages">
+        {% if logs.has_previous %}<a class="btn btn-light btn-sm" href="?{{ request.GET.urlencode }}&amp;page={{ logs.previous_page_number }}">Previous</a>{% endif %}
+        <span class="mx-2">Page {{ logs.number }} of {{ logs.paginator.num_pages }}</span>
+        {% if logs.has_next %}<a class="btn btn-light btn-sm" href="?{{ request.GET.urlencode }}&amp;page={{ logs.next_page_number }}">Next</a>{% endif %}
+      </nav>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

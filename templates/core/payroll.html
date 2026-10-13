@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Payroll &amp; Salary · Employee Management System{% endblock %}
+{% block crumb %}Payroll &amp; Salary{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <small class="eyebrow">PAYROLL MANAGEMENT</small>
+    <h1>Payroll &amp; Salary</h1>
+    <p>Review monthly payroll totals and employee payment history.</p>
+  </div>
+  {% if perms.core.add_payrollrecord %}
+    <a class="btn btn-primary" href="{% url 'payroll_create' %}"><i class="bi bi-plus-lg"></i> Add payroll record</a>
+  {% endif %}
+</div>
+<section class="stats payroll-stats">
+  <div class="stat"><div class="stat-label">Payroll records<span class="ico purple"><i class="bi bi-receipt"></i></span></div><strong>{{ record_count }}</strong><small>For the selected filters</small></div>
+  <div class="stat"><div class="stat-label">Gross payroll<span class="ico blue"><i class="bi bi-cash"></i></span></div><strong>{{ totals.gross_total|floatformat:2 }}</strong><small>Basic salary plus allowances</small></div>
+  <div class="stat"><div class="stat-label">Deductions<span class="ico orange"><i class="bi bi-dash-circle"></i></span></div><strong>{{ totals.deductions_total|floatformat:2 }}</strong><small>Total deductions</small></div>
+  <div class="stat"><div class="stat-label">Net payroll<span class="ico green"><i class="bi bi-wallet2"></i></span></div><strong>{{ totals.net_total|floatformat:2 }}</strong><small>Gross payroll minus deductions</small></div>
+</section>
+<section class="panel table-panel payroll-summary-panel">
+  <div class="panel-head"><div><h2>Monthly payroll summary</h2><p>Totals grouped by pay month for the selected filters</p></div></div>
+  <div class="table-responsive"><table class="table">
+    <thead><tr><th>Pay month</th><th>Records</th><th>Basic salary</th><th>Allowances</th><th>Gross payroll</th><th>Deductions</th><th>Net payroll</th></tr></thead>
+    <tbody>
+      {% for summary in monthly_summaries %}
+        <tr><td><strong>{{ summary.pay_month|date:"F Y" }}</strong></td><td>{{ summary.record_count }}</td><td>{{ summary.basic_total|floatformat:2 }}</td><td>{{ summary.allowances_total|floatformat:2 }}</td><td>{{ summary.gross_total|floatformat:2 }}</td><td>{{ summary.deductions_total|floatformat:2 }}</td><td><strong>{{ summary.net_total|floatformat:2 }}</strong></td></tr>
+      {% empty %}
+        <tr><td colspan="7"><div class="empty"><i class="bi bi-calendar2-week"></i><b>No monthly totals yet</b><span>Payroll totals will be grouped here once records are added.</span></div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+</section>
+<section class="panel table-panel">
+  <form class="filters payroll-filters" method="get">
+    {{ form.q }}
+    {{ form.year }}
+    {{ form.month }}
+    <button class="btn btn-primary" type="submit"><i class="bi bi-funnel"></i> Filter</button>
+    <a class="btn btn-light" href="{% url 'payroll_list' %}">Clear</a>
+    <a class="btn btn-light" href="{% url 'payroll_export_csv' %}?{{ request.GET.urlencode }}"><i class="bi bi-download"></i> Export CSV</a>
+  </form>
+  {% if form.errors %}<div class="alert alert-danger m-3">Correct the invalid filters to view payroll records.</div>{% endif %}
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead><tr><th>Employee</th><th>Department</th><th>Pay month</th><th>Basic salary</th><th>Allowances</th><th>Gross</th><th>Deductions</th><th>Net salary</th><th>Payment</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for record in records %}
+          <tr>
+            <td><a class="payroll-employee" href="{% url 'payroll_history' record.employee_id %}">{{ record.employee.full_name }}<small>{{ record.employee.employee_id }}</small></a></td>
+            <td>{{ record.employee.department.name }}</td>
+            <td>{{ record.pay_month|date:"F Y" }}</td>
+            <td>{{ record.basic_salary|floatformat:2 }}</td>
+            <td>{{ record.allowances|floatformat:2 }}</td>
+            <td>{{ record.gross_salary|floatformat:2 }}</td>
+            <td>{{ record.deductions|floatformat:2 }}</td>
+            <td><strong>{{ record.net_salary|floatformat:2 }}</strong></td>
+            <td><span class="badge-status {% if record.payment_status == 'PAID' %}status-approved{% elif record.payment_status == 'PENDING' %}status-pending{% else %}status-inactive{% endif %}">{{ record.get_payment_status_display }}</span>{% if record.payment_date %}<small class="payroll-date">{{ record.payment_date|date:"M j, Y" }}</small>{% endif %}</td>
+            <td class="actions">
+              <a class="btn btn-light btn-sm payslip-download" href="{% url 'payroll_payslip' record.pk %}" title="Download payslip"><i class="bi bi-file-earmark-pdf"></i> Payslip</a>
+              {% if perms.core.change_payrollrecord %}<a href="{% url 'payroll_update' record.pk %}" title="Edit payroll record"><i class="bi bi-pencil"></i></a>{% endif %}
+              {% if perms.core.delete_payrollrecord %}<form method="post" action="{% url 'payroll_delete' record.pk %}" class="audit-inline-delete" onsubmit="return confirm('Delete this payroll record?')">{% csrf_token %}<button type="submit" title="Delete payroll record"><i class="bi bi-trash"></i></button></form>{% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="10"><div class="empty"><i class="bi bi-cash-stack"></i><b>No payroll records found</b><span>Add a record or adjust the selected filters.</span></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

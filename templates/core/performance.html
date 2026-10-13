@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Performance &amp; Appraisal · Employee Management System{% endblock %}
+{% block crumb %}Performance &amp; Appraisal{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><small class="eyebrow">PEOPLE DEVELOPMENT</small><h1>Performance &amp; Appraisal</h1><p>Review employee performance, goals, and development feedback.</p></div>
+  {% if perms.core.add_performancereview %}<a class="btn btn-primary" href="{% url 'performance_create' %}"><i class="bi bi-plus-lg"></i> Create review</a>{% endif %}
+</div>
+<section class="stats performance-stats">
+  <div class="stat"><div class="stat-label">Reviews<span class="ico purple"><i class="bi bi-clipboard2-check"></i></span></div><strong>{{ summary.review_count|default:0 }}</strong><small>Matching current filters</small></div>
+  <div class="stat"><div class="stat-label">Average rating<span class="ico blue"><i class="bi bi-star"></i></span></div><strong>{% if summary.average_rating %}{{ summary.average_rating|floatformat:1 }} / 5{% else %}—{% endif %}</strong><small>Across matching reviews</small></div>
+  <div class="stat"><div class="stat-label">Employees reviewed<span class="ico green"><i class="bi bi-people"></i></span></div><strong>{{ employee_summary|length }}</strong><small>With matching reviews</small></div>
+</section>
+<section class="panel performance-summary">
+  <div class="panel-head"><div><h2>Rating summary</h2><p>Review count by performance rating</p></div></div>
+  <div class="rating-summary-list">
+    {% for row in rating_summary %}
+      <div class="rating-summary-item"><span class="rating-stars">{{ row.rating }} / 5</span><span>{{ row.label }}</span><strong>{{ row.count }}</strong></div>
+    {% empty %}<div class="empty"><i class="bi bi-bar-chart"></i><b>No ratings to summarize</b><span>Reviews matching the selected filters will appear here.</span></div>{% endfor %}
+  </div>
+</section>
+<section class="panel performance-summary">
+  <div class="panel-head"><div><h2>Employee review summary</h2><p>Review counts and average ratings by employee</p></div></div>
+  <div class="table-responsive"><table class="table">
+    <thead><tr><th>Employee</th><th>Department</th><th>Reviews</th><th>Average rating</th><th>History</th></tr></thead>
+    <tbody>
+      {% for row in employee_summary %}
+        <tr><td><div class="emp-cell"><span><b>{{ row.employee__full_name }}</b><small>{{ row.employee__employee_id }}</small></span></div></td><td>{{ row.employee__department__name }}</td><td>{{ row.review_count }}</td><td>{{ row.average_rating|floatformat:1 }} / 5</td><td><a class="btn btn-light btn-sm" href="{% url 'performance_history' row.employee_id %}">View history</a></td></tr>
+      {% empty %}<tr><td colspan="5"><div class="empty"><i class="bi bi-people"></i><b>No employee summaries</b><span>Create a performance review to get started.</span></div></td></tr>{% endfor %}
+    </tbody>
+  </table></div>
+</section>
+<section class="panel table-panel">
+  <form class="filters performance-filters" method="get">
+    {{ form.q }}
+    {{ form.department }}
+    {{ form.period_year }}
+    {{ form.rating }}
+    <button class="btn btn-primary" type="submit"><i class="bi bi-funnel"></i> Filter</button>
+    <a class="btn btn-light" href="{% url 'performance_list' %}">Clear</a>
+    <a class="btn btn-light" href="{% url 'performance_export_csv' %}?{{ request.GET.urlencode }}"><i class="bi bi-download"></i> Export CSV</a>
+  </form>
+  {% if form.errors %}<div class="alert alert-danger m-3">Correct the filters to view performance reviews.</div>{% endif %}
+  <div class="table-responsive"><table class="table table-hover">
+    <thead><tr><th>Employee</th><th>Department</th><th>Review period</th><th>Rating</th><th>Reviewer</th><th>Created</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for review in reviews %}
+        <tr>
+          <td><a class="performance-employee" href="{% url 'performance_history' review.employee_id %}">{{ review.employee.full_name }}<small>{{ review.employee.employee_id }}</small></a></td>
+          <td>{{ review.employee.department.name }}</td>
+          <td>{{ review.review_period_start|date:"d M Y" }} – {{ review.review_period_end|date:"d M Y" }}</td>
+          <td><span class="performance-rating">{{ review.rating }} / 5</span><small class="performance-rating-label">{{ review.get_rating_display }}</small></td>
+          <td>{{ review.reviewer.get_full_name|default:review.reviewer.username }}</td>
+          <td>{{ review.created_at|date:"d M Y" }}</td>
+          <td class="actions"><a class="btn btn-light btn-sm" href="{% url 'performance_history' review.employee_id %}">Details</a>{% if perms.core.change_performancereview %}<a href="{% url 'performance_update' review.pk %}" title="Edit review"><i class="bi bi-pencil"></i></a>{% endif %}{% if perms.core.delete_performancereview %}<form method="post" action="{% url 'performance_delete' review.pk %}" class="audit-inline-delete" onsubmit="return confirm('Delete this performance review?')">{% csrf_token %}<button type="submit" title="Delete review"><i class="bi bi-trash"></i></button></form>{% endif %}</td>
+        </tr>
+      {% empty %}<tr><td colspan="7"><div class="empty"><i class="bi bi-clipboard2"></i><b>No performance reviews found</b><span>Try changing the filters or create a review.</span></div></td></tr>{% endfor %}
+    </tbody>
+  </table></div>
+  {% if reviews.paginator.num_pages > 1 %}
+    <div class="table-bottom"><span>Page {{ reviews.number }} of {{ reviews.paginator.num_pages }} · {{ reviews.paginator.count }} review{{ reviews.paginator.count|pluralize }}</span><nav>{% if reviews.has_previous %}<a class="btn btn-light btn-sm" href="?{{ request.GET.urlencode }}&amp;page={{ reviews.previous_page_number }}">Previous</a>{% endif %} {% if reviews.has_next %}<a class="btn btn-light btn-sm" href="?{{ request.GET.urlencode }}&amp;page={{ reviews.next_page_number }}">Next</a>{% endif %}</nav></div>
+  {% endif %}
+</section>
+{% endblock %}

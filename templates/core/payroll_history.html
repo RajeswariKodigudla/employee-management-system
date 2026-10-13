@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}{{ employee.full_name }} Payroll History · Employee Management System{% endblock %}
+{% block crumb %}Payroll History{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><small class="eyebrow">EMPLOYEE PAYROLL</small><h1>{{ employee.full_name }}</h1><p>{{ employee.employee_id }} · {{ employee.department.name }} · Salary history</p></div>
+  <div class="payroll-head-actions"><a class="btn btn-light" href="{% url 'payroll_list' %}"><i class="bi bi-arrow-left"></i> All payroll</a>{% if perms.core.add_payrollrecord %}<a class="btn btn-primary" href="{% url 'payroll_create' %}"><i class="bi bi-plus-lg"></i> Add record</a>{% endif %}</div>
+</div>
+<section class="stats payroll-stats payroll-history-stats">
+  <div class="stat"><div class="stat-label">Records<span class="ico purple"><i class="bi bi-receipt"></i></span></div><strong>{{ records|length }}</strong><small>Monthly payroll records</small></div>
+  <div class="stat"><div class="stat-label">Basic salary total<span class="ico blue"><i class="bi bi-cash"></i></span></div><strong>{{ totals.basic_total|floatformat:2 }}</strong><small>Across recorded months</small></div>
+  <div class="stat"><div class="stat-label">Allowances total<span class="ico green"><i class="bi bi-plus-circle"></i></span></div><strong>{{ totals.allowances_total|floatformat:2 }}</strong><small>Across recorded months</small></div>
+  <div class="stat"><div class="stat-label">Deductions total<span class="ico orange"><i class="bi bi-dash-circle"></i></span></div><strong>{{ totals.deductions_total|floatformat:2 }}</strong><small>Across recorded months</small></div>
+</section>
+<section class="panel table-panel">
+  <div class="panel-head"><div><h2>Salary history</h2><p>Monthly compensation and payment status</p></div></div>
+  <div class="table-responsive"><table class="table table-hover">
+    <thead><tr><th>Pay month</th><th>Basic salary</th><th>Allowances</th><th>Gross salary</th><th>Deductions</th><th>Net salary</th><th>Status</th><th>Payment date</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for record in records %}
+        <tr><td>{{ record.pay_month|date:"F Y" }}</td><td>{{ record.basic_salary|floatformat:2 }}</td><td>{{ record.allowances|floatformat:2 }}</td><td>{{ record.gross_salary|floatformat:2 }}</td><td>{{ record.deductions|floatformat:2 }}</td><td><strong>{{ record.net_salary|floatformat:2 }}</strong></td><td><span class="badge-status {% if record.payment_status == 'PAID' %}status-approved{% elif record.payment_status == 'PENDING' %}status-pending{% else %}status-inactive{% endif %}">{{ record.get_payment_status_display }}</span></td><td>{{ record.payment_date|date:"M j, Y"|default:"—" }}</td><td class="actions"><a class="btn btn-light btn-sm payslip-download" href="{% url 'payroll_payslip' record.pk %}" title="Download payslip"><i class="bi bi-file-earmark-pdf"></i> Payslip</a>{% if perms.core.change_payrollrecord %}<a href="{% url 'payroll_update' record.pk %}" title="Edit payroll record"><i class="bi bi-pencil"></i></a>{% endif %}{% if perms.core.delete_payrollrecord %}<form method="post" action="{% url 'payroll_delete' record.pk %}" class="audit-inline-delete" onsubmit="return confirm('Delete this payroll record?')">{% csrf_token %}<button type="submit" title="Delete payroll record"><i class="bi bi-trash"></i></button></form>{% endif %}</td></tr>
+      {% empty %}
+        <tr><td colspan="9"><div class="empty"><i class="bi bi-cash-stack"></i><b>No salary history available</b><span>Payroll records for this employee will appear here.</span></div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+</section>
+{% endblock %}

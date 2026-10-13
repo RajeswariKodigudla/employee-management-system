@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}Employees · Employee Management System{% endblock %}
+{% block crumb %}Employees{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><small class="eyebrow">PEOPLE DIRECTORY</small><h1>Employees</h1><p>Manage employee records and organization information.</p></div>
+  {% if perms.core.add_employee %}<a class="btn btn-primary" href="{% url 'employee_create' %}"><i class="bi bi-plus-lg"></i> Add employee</a>{% endif %}
+</div>
+<section class="panel table-panel">
+  <form method="get" class="filters">
+    <div class="search"><i class="bi bi-search"></i><input name="q" value="{{ q }}" placeholder="Search name, ID or email..."></div>
+    <select name="department" class="form-select">
+      <option value="">All departments</option>
+      {% for d in departments %}<option value="{{ d.pk }}" {% if dep == d.pk|stringformat:'s' %}selected{% endif %}>{{ d.name }}</option>{% endfor %}
+    </select>
+    <select name="status" class="form-select">
+      <option value="">All statuses</option>
+      <option value="ACTIVE" {% if status == 'ACTIVE' %}selected{% endif %}>Active</option>
+      <option value="INACTIVE" {% if status == 'INACTIVE' %}selected{% endif %}>Inactive</option>
+      <option value="ON_LEAVE" {% if status == 'ON_LEAVE' %}selected{% endif %}>On leave</option>
+    </select>
+    <button class="btn btn-outline-secondary">Filter</button>
+    <a class="btn btn-light" href="{% url 'employee_list' %}">Reset</a>
+    {% if perms.core.view_employee %}<a class="btn btn-outline-primary" href="{% url 'export_csv' %}">Export CSV</a>{% endif %}
+  </form>
+  {% if perms.core.delete_employee %}<form method="post" action="{% url 'bulk_delete' %}" id="bulkForm">{% csrf_token %}{% endif %}
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead><tr>{% if perms.core.delete_employee %}<th><input type="checkbox" id="selectAll" aria-label="Select all employees"></th>{% endif %}<th>Employee</th><th>Department</th><th>Designation</th><th>Joining date</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for e in employees %}
+          <tr>
+            {% if perms.core.delete_employee %}<td><input type="checkbox" class="row-check" name="selected_ids" value="{{ e.pk }}" aria-label="Select {{ e.full_name }}"></td>{% endif %}
+            <td><a class="emp-cell" href="{% url 'employee_detail' e.pk %}"><span class="avatar">{{ e.full_name|first|upper }}</span><span><b>{{ e.full_name }}</b><small>{{ e.employee_id }} · {{ e.email }}</small></span></a></td>
+            <td>{{ e.department.name }}</td><td>{{ e.designation }}</td><td>{{ e.joining_date|date:'d M Y' }}</td>
+            <td><span class="badge-status status-{{ e.status|lower }}">{{ e.get_status_display }}</span></td>
+            <td class="actions">
+              <a href="{% url 'employee_detail' e.pk %}" title="View"><i class="bi bi-eye"></i></a>
+              {% if perms.core.change_employee %}<a href="{% url 'employee_update' e.pk %}" title="Edit"><i class="bi bi-pencil"></i></a>{% endif %}
+              {% if perms.core.delete_employee %}<button type="button" data-delete-url="{% url 'employee_delete' e.pk %}" data-item-name="{{ e.full_name }}" title="Delete"><i class="bi bi-trash"></i></button>{% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="{% if perms.core.delete_employee %}7{% else %}6{% endif %}"><div class="empty"><i class="bi bi-search"></i><b>No employees found</b><span>Change the filters or add an employee.</span></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if perms.core.delete_employee %}
+    <div class="table-bottom"><span>{{ employees|length }} matching records</span><button class="btn btn-outline-danger btn-sm" onclick="return confirm('Delete selected employee records?')">Delete selected</button></div>
+  </form>
+  {% endif %}
+  {% if perms.auth.view_user %}
+    <div class="danger-zone">
+      <span><b>Danger zone</b><small>Permanently delete all employee records and related attendance/leave data.</small></span>
+      <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteAll">Delete all employees</button>
+    </div>
+    <div class="modal fade" id="deleteAll" tabindex="-1">
+      <div class="modal-dialog"><div class="modal-content">
+        <form method="post" action="{% url 'delete_all' %}">{% csrf_token %}
+          <div class="modal-header"><h5>Delete all employee records?</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body"><p>This action cannot be undone. Type <b>DELETE ALL</b> to confirm.</p><input class="form-control" name="confirm_text" required autocomplete="off"></div>
+          <div class="modal-footer"><button class="btn btn-light" data-bs-dismiss="modal" type="button">Cancel</button><button class="btn btn-danger">Delete all</button></div>
+        </form>
+      </div></div>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

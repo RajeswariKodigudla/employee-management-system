@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% block title %}Reports &amp; Analytics · Employee Management System{% endblock %}
+{% block crumb %}Reports &amp; Analytics{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <small class="eyebrow">WORKFORCE INSIGHTS</small>
+    <h1>Reports &amp; Analytics</h1>
+    <p>Explore employee, attendance, and leave records from your database.</p>
+  </div>
+  {% if report_valid %}
+    <a class="btn btn-primary" href="{% url 'reports_export_csv' %}?start_date={{ form.start_date.value|default:'' }}&amp;end_date={{ form.end_date.value|default:'' }}">
+      <i class="bi bi-download"></i> Export CSV
+    </a>
+  {% endif %}
+</div>
+
+<section class="panel report-filters">
+  <form method="get" class="report-filter-form">
+    <div class="report-date-field">
+      <label class="form-label" for="{{ form.start_date.id_for_label }}">From</label>
+      {{ form.start_date }}
+      {% for error in form.start_date.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+    </div>
+    <div class="report-date-field">
+      <label class="form-label" for="{{ form.end_date.id_for_label }}">To</label>
+      {{ form.end_date }}
+      {% for error in form.end_date.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+    </div>
+    <button class="btn btn-primary" type="submit"><i class="bi bi-funnel"></i> Apply filters</button>
+    <a class="btn btn-light" href="{% url 'reports' %}">Clear</a>
+    <p class="report-filter-note">Employees are filtered by joining date, attendance by attendance date, and leave requests by leave start date.</p>
+  </form>
+  {% for error in form.non_field_errors %}<div class="alert alert-danger mb-0 mt-3">{{ error }}</div>{% endfor %}
+</section>
+
+{% if report_valid %}
+  <div class="stats report-stats">
+    <div class="stat">
+      <div class="stat-label">Employees in range <span class="ico purple"><i class="bi bi-people"></i></span></div>
+      <strong>{{ total_employees }}</strong>
+      <small>Based on employee joining dates</small>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Departments <span class="ico blue"><i class="bi bi-building"></i></span></div>
+      <strong>{{ department_rows|length }}</strong>
+      <small>Including departments with no matching hires</small>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Attendance records <span class="ico green"><i class="bi bi-calendar-check"></i></span></div>
+      <strong>{{ attendance_count }}</strong>
+      <small>Recorded attendance entries in range</small>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Leave requests <span class="ico orange"><i class="bi bi-calendar2-week"></i></span></div>
+      <strong>{{ leave_request_count }}</strong>
+      <small>Grouped by request status below</small>
+    </div>
+  </div>
+
+  <div class="report-chart-grid">
+    <section class="panel report-chart-panel">
+      <div class="panel-head"><div><h2>Employees by department</h2><p>Employees joining during the selected period</p></div></div>
+      {% if department_rows %}<div class="report-chart"><canvas id="department-chart" aria-label="Employees by department chart"></canvas></div>
+      {% else %}<div class="empty"><i class="bi bi-bar-chart"></i><b>No department data</b><span>Departments will appear here when they exist.</span></div>{% endif %}
+    </section>
+    <section class="panel report-chart-panel">
+      <div class="panel-head"><div><h2>Monthly attendance</h2><p>Attendance records grouped by calendar month</p></div></div>
+      {% if attendance_rows %}<div class="report-chart"><canvas id="attendance-chart" aria-label="Monthly attendance records chart"></canvas></div>
+      {% else %}<div class="empty"><i class="bi bi-calendar-x"></i><b>No attendance data</b><span>No records match this date range.</span></div>{% endif %}
+    </section>
+  </div>
+
+  <div class="report-chart-grid">
+    <section class="panel report-chart-panel">
+      <div class="panel-head"><div><h2>Leave requests by status</h2><p>Requests starting during the selected period</p></div></div>
+      {% if has_leave_requests %}<div class="report-chart report-chart-small"><canvas id="leave-chart" aria-label="Leave requests by status chart"></canvas></div>
+      {% else %}<div class="empty"><i class="bi bi-calendar-x"></i><b>No leave requests</b><span>Status counts are all zero for this date range.</span></div>{% endif %}
+    </section>
+    <section class="panel table-panel">
+      <div class="panel-head"><div><h2>Department counts</h2><p>Employees joined within the selected period</p></div></div>
+      <div class="table-responsive">
+        <table class="table">
+          <thead><tr><th>Department</th><th>Employees</th></tr></thead>
+          <tbody>
+            {% for row in department_rows %}<tr><td>{{ row.name }}</td><td>{{ row.count }}</td></tr>
+            {% empty %}<tr><td colspan="2"><div class="empty">No departments found.</div></td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel table-panel">
+    <div class="panel-head"><div><h2>Leave request counts</h2><p>Counts include zero-value statuses</p></div></div>
+    <div class="table-responsive">
+      <table class="table">
+        <thead><tr><th>Status</th><th>Requests</th></tr></thead>
+        <tbody>{% for leave in leave_counts %}<tr><td><span class="badge-status status-{{ leave.status|lower }}">{{ leave.label }}</span></td><td>{{ leave.count }}</td></tr>{% endfor %}</tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel table-panel">
+    <div class="panel-head"><div><h2>Monthly attendance records</h2><p>Existing attendance records grouped by month</p></div></div>
+    <div class="table-responsive">
+      <table class="table">
+        <thead><tr><th>Month</th><th>Attendance records</th></tr></thead>
+        <tbody>
+          {% for row in attendance_rows %}<tr><td>{{ row.month }}</td><td>{{ row.count }}</td></tr>
+          {% empty %}<tr><td colspan="2"><div class="empty">No attendance records match this date range.</div></td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% else %}
+  <section class="panel"><div class="empty"><i class="bi bi-exclamation-circle"></i><b>Check the date range</b><span>Correct the dates above to view report data.</span></div></section>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+  {% if report_valid %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    {{ department_rows|json_script:"department-report-data" }}
+    {{ attendance_rows|json_script:"attendance-report-data" }}
+    {{ leave_counts|json_script:"leave-report-data" }}
+    <script>
+      const reportPurple = "#6658d3";
+      const departmentRows = JSON.parse(document.getElementById("department-report-data").textContent);
+      const attendanceRows = JSON.parse(document.getElementById("attendance-report-data").textContent);
+      const leaveRows = JSON.parse(document.getElementById("leave-report-data").textContent);
+      const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+      };
+      const departmentCanvas = document.getElementById("department-chart");
+      if (departmentCanvas) {
+        new Chart(departmentCanvas, {
+          type: "bar",
+          data: {
+            labels: departmentRows.map(row => row.name),
+            datasets: [{ label: "Employees", data: departmentRows.map(row => row.count), backgroundColor: reportPurple, borderRadius: 6 }]
+          },
+          options: chartOptions
+        });
+      }
+      const attendanceCanvas = document.getElementById("attendance-chart");
+      if (attendanceCanvas) {
+        new Chart(attendanceCanvas, {
+          type: "line",
+          data: {
+            labels: attendanceRows.map(row => row.month),
+            datasets: [{ label: "Attendance records", data: attendanceRows.map(row => row.count), borderColor: reportPurple, backgroundColor: "rgba(102, 88, 211, 0.12)", fill: true, tension: 0.3 }]
+          },
+          options: chartOptions
+        });
+      }
+      const leaveCanvas = document.getElementById("leave-chart");
+      if (leaveCanvas) {
+        new Chart(leaveCanvas, {
+          type: "doughnut",
+          data: {
+            labels: leaveRows.map(row => row.label),
+            datasets: [{ data: leaveRows.map(row => row.count), backgroundColor: ["#e9a23b", "#28a579", "#9296ac"] }]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
+    </script>
+  {% endif %}
+{% endblock %}
