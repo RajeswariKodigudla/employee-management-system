@@ -20,6 +20,7 @@ class Command(BaseCommand):
             )
 
         User = get_user_model()
+
         user, created = User.objects.get_or_create(
             username=username,
             defaults={"email": email},
