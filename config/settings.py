@@ -12,6 +12,15 @@ ALLOWED_HOSTS=[
  for host in os.environ.get("DJANGO_ALLOWED_HOSTS","127.0.0.1,localhost").split(",")
  if host.strip()
 ]
+render_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+
+if render_host:
+    if render_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(render_host)
+
+    CSRF_TRUSTED_ORIGINS = [f"https://{render_host}"]
+else:
+    CSRF_TRUSTED_ORIGINS = []
 INSTALLED_APPS=["django.contrib.admin","django.contrib.auth","django.contrib.contenttypes","django.contrib.sessions","django.contrib.messages","django.contrib.staticfiles","core"]
 MIDDLEWARE=["django.middleware.security.SecurityMiddleware","whitenoise.middleware.WhiteNoiseMiddleware","django.contrib.sessions.middleware.SessionMiddleware","django.middleware.common.CommonMiddleware","django.middleware.csrf.CsrfViewMiddleware","django.contrib.auth.middleware.AuthenticationMiddleware","django.contrib.messages.middleware.MessageMiddleware","django.middleware.clickjacking.XFrameOptionsMiddleware"]
 ROOT_URLCONF="config.urls"
